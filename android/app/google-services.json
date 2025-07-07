@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "691830640099",
+    "project_id": "notificaciones-century21",
+    "storage_bucket": "notificaciones-century21.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691830640099:android:8dcccce7acc6f7f02724d6",
+        "android_client_info": {
+          "package_name": "com.example.flutter_crm_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBU6xVwhyx4BtaGz_ZSAqiZHDh5dyw5TVc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
