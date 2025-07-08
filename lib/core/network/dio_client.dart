@@ -22,6 +22,10 @@ final dioProvider = Provider<Dio>((ref) {
     },
   );
 
+  // --- Nuevo Log de Inicialización de Dio ---
+  AppLogger.log('DIO INIT: Dio initialized with baseUrl: ${dio.options.baseUrl}');
+  // ----------------------------------------
+
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -32,6 +36,9 @@ final dioProvider = Provider<Dio>((ref) {
           AppLogger.log('Token added to header: Bearer $token');
         }
         AppLogger.log('Request: ${options.method} ${options.uri}');
+        // --- Nuevo Log de URL Completa de Petición ---
+        AppLogger.log('Full Request URL: ${options.baseUrl}${options.path}');
+        // --------------------------------------------
         AppLogger.log('Request Data: ${options.data}');
         return handler.next(options); // Continuar con la petición
       },
@@ -43,17 +50,14 @@ final dioProvider = Provider<Dio>((ref) {
       onError: (DioException e, handler) async {
         AppLogger.error('DioError: ${e.requestOptions.method} ${e.requestOptions.uri}');
         AppLogger.error('Error Message: ${e.message}');
+        // --- Nuevo Log de URL Completa de Error ---
+        AppLogger.error('Full Error URL: ${e.requestOptions.baseUrl}${e.requestOptions.path}');
+        // ------------------------------------------
         if (e.response != null) {
           AppLogger.error('Error Response Data: ${e.response?.data}');
           AppLogger.error('Error Status Code: ${e.response?.statusCode}');
           if (e.response?.statusCode == 401) {
-            // Token inválido o expirado.
-            // Podrías intentar refrescar el token aquí si tu backend lo soporta.
-            // O desloguear al usuario y llevarlo al login.
             await storageService.deleteAll(); // Limpiar token y rol
-            // Aquí podrías usar tu router para navegar al login:
-            // Ejemplo: ref.read(goRouterProvider).go('/login');
-            // Por ahora, solo limpiamos y dejamos que el provider de Auth maneje el estado.
             AppLogger.warn('Unauthorized access (401). Token cleared.');
           }
         }
@@ -65,24 +69,23 @@ final dioProvider = Provider<Dio>((ref) {
   return dio;
 });
 
-// Utilidad simple de Logger (puedes mejorarla o usar un paquete como 'logger')
-// lib/core/utils/logger.dart
+// Utilidad simple de Logger (Ahora con print() descomentado para depuración)
 class AppLogger {
   static void log(String message) {
-    // print('[LOG] $message'); // Descomenta para ver logs en consola
+    print('[LOG] $message'); // Descomentado para ver logs en consola
   }
 
   static void warn(String message) {
-    // print('[WARN] $message');
+    print('[WARN] $message'); // Descomentado
   }
 
   static void error(String message, [dynamic error, StackTrace? stackTrace]) {
-    // print('[ERROR] $message');
-    // if (error != null) {
-    //   print('  Error: $error');
-    // }
-    // if (stackTrace != null) {
-    //   print('  StackTrace: $stackTrace');
-    // }
+    print('[ERROR] $message'); // Descomentado
+    if (error != null) {
+      print('  Error: $error');
+    }
+    if (stackTrace != null) {
+      print('  StackTrace: $stackTrace');
+    }
   }
 }

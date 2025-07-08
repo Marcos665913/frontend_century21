@@ -1,14 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_crm_app/core/network/dio_client.dart';
+import 'package:flutter_crm_app/core/network/dio_client.dart'; // Asegúrate de que AppLogger esté accesible
 import 'package:flutter_crm_app/features/clients/data/data_sources/client_remote_data_source.dart';
 import 'package:flutter_crm_app/features/clients/data/models/client_model.dart';
 import 'package:flutter_crm_app/features/clients/data/repositories/client_repository_impl.dart';
 import 'package:flutter_crm_app/features/clients/data/repositories/client_repository.dart';
 import 'package:flutter_crm_app/features/clients/presentation/providers/client_state.dart';
 import 'package:url_launcher/url_launcher.dart'; 
-
-// Importa AppConfig para acceder a la baseUrl
-import 'package:flutter_crm_app/core/config/app_config.dart'; // <-- ¡Nueva importación!
+// La importación de AppConfig ya no es directamente necesaria en este archivo, pero no causa problema si se queda.
+// Si quieres quitar la advertencia "unused import", puedes eliminarla de aquí.
+// import 'package:flutter_crm_app/core/config/app_config.dart'; 
 
 // Eliminamos las importaciones de 'package:open_filex/open_filex.dart' y 'dart:io' que no se usan aquí.
 // Si las usas en otras partes del archivo o proyecto, no las elimines.
@@ -36,7 +36,7 @@ final clientNotifierProvider = StateNotifierProvider<ClientNotifier, ClientState
 
 class ClientNotifier extends StateNotifier<ClientState> {
   final ClientRepository _repository;
-  final Dio _dio; 
+  final Dio _dio;  
 
   ClientNotifier(this._repository, this._dio) : super(const ClientState()) {
     fetchClients();
@@ -109,23 +109,23 @@ class ClientNotifier extends StateNotifier<ClientState> {
     );
   }
 
- Future<String?> exportClientsToExcel() async {
-  try {
-    final response = await _dio.get('/clients/export-url'); 
-    final String downloadUrl = response.data['downloadUrl']; 
+  Future<String?> exportClientsToExcel() async {
+    try {
+      final response = await _dio.get('/clients/export-url'); 
+      final String downloadUrl = response.data['downloadUrl']; 
 
-    // --- AÑADE ESTE PRINT PARA DEPURACIÓN ---
-    print('URL de descarga recibida del backend: $downloadUrl');
-    // ----------------------------------------
+      // --- Log Existente, ahora usando AppLogger ---
+      AppLogger.log('CLIENT PROVIDER: URL de descarga recibida del backend: $downloadUrl');
+      // -------------------------------------------
 
-    if (!await canLaunchUrl(Uri.parse(downloadUrl))) {
-      return 'No se pudo abrir el enlace de descarga. Asegúrate de que la URL es válida.';
+      if (!await canLaunchUrl(Uri.parse(downloadUrl))) {
+        return 'No se pudo abrir el enlace de descarga. Asegúrate de que la URL es válida.';
+      }
+      await launchUrl(Uri.parse(downloadUrl), mode: LaunchMode.externalApplication);
+      return null;
+    } catch (e) {
+      AppLogger.error('CLIENT PROVIDER: Error en exportClientsToExcel: $e'); // Usando AppLogger
+      return 'Ocurrió un error al intentar exportar el archivo.';
     }
-    await launchUrl(Uri.parse(downloadUrl), mode: LaunchMode.externalApplication);
-    return null;
-  } catch (e) {
-    print('Error en exportClientsToExcel: $e'); // Este print también es crucial
-    return 'Ocurrió un error al intentar exportar el archivo.';
   }
-}
 }

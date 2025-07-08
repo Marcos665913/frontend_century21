@@ -7,19 +7,23 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_crm_app/core/services/firebase_messaging_service.dart';
 import 'firebase_options.dart';
+import 'package:flutter_crm_app/core/config/app_config.dart'; // Importar AppConfig para el log de inicio
+import 'package:flutter_crm_app/core/network/dio_client.dart'; // Importar AppLogger
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // --- Nuevo Log de Inicio ---
+  AppLogger.log('App START: AppConfig.baseUrl al inicio: ${AppConfig.baseUrl}');
+  // -------------------------
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
-  // Inicializamos nuestro servicio de mensajería para pedir permisos.
-  // Ya no le pasamos Dio aquí, lo haremos en el login.
   await FirebaseMessagingService().initialize();
 
-  await initializeDateFormatting('es_ES', null); 
+  await initializeDateFormatting('es_ES', null);  
   
   runApp(
     const ProviderScope(
