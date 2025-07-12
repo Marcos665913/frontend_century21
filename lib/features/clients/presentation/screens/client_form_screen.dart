@@ -1,3 +1,4 @@
+// lib/features/clients/presentation/screens/client_form_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_crm_app/core/common_widgets/loading_indicator.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_crm_app/features/custom_fields/presentation/providers/cu
 import 'package:go_router/go_router.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_crm_app/core/network/dio_client.dart'; // Importar AppLogger
 
 class ClientFormScreen extends ConsumerStatefulWidget {
   final String? clientId;
@@ -21,8 +23,8 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final Map<String, TextEditingController> _standardControllers = {};
-  final Map<String, TextEditingController> _customControllers = {};
-
+  final Map<String, dynamic> _customControllers = {}; // Usar Map<String, dynamic> para consistencia
+  
   final Map<String, dynamic> _dropdownValues = {};
 
   DateTime? _fechaContacto;
@@ -36,6 +38,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     super.initState();
     _initializeControllers();
     Future.microtask(() => _loadInitialData());
+    AppLogger.log('ClientFormScreen: initState - ${widget.clientId == null ? "Creando" : "Editando"} cliente.');
   }
 
   void _initializeControllers() {
@@ -51,6 +54,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     if (widget.clientId != null) {
       try {
         _editingClient = ref.read(clientNotifierProvider).clients.firstWhere((c) => c.id == widget.clientId);
+        AppLogger.log('ClientFormScreen: Cliente a editar cargado: ${_editingClient?.nombre}');
 
         _dropdownValues['asunto'] = _editingClient!.asunto;
         _dropdownValues['tipoInmueble'] = _editingClient!.tipoInmueble;
@@ -70,12 +74,14 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         });
 
       } catch (e) {
+        AppLogger.error('ClientFormScreen: Error al cargar cliente para editar: $e');
         if(mounted) Fluttertoast.showToast(msg: "Error: No se encontró el cliente.", backgroundColor: Colors.red);
       }
     } else {
       _fechaContacto = DateTime.now();
       _fechaAsignacion = DateTime.now();
       _dropdownValues['estatus'] = EstatusCliente.sinComenzar; // Establece un valor por defecto al crear
+      AppLogger.log('ClientFormScreen: Inicializando formulario para nuevo cliente.');
     }
 
     final customFieldDefs = ref.read(customFieldNotifierProvider).fields;
@@ -86,6 +92,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     }
 
     if(mounted) setState(() { _isLoading = false; });
+    AppLogger.log('ClientFormScreen: Formulario cargado. _isLoading: $_isLoading');
   }
 
   Future<DateTime?> _pickDateTime(BuildContext context, DateTime? initialDate) async {
@@ -108,6 +115,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      AppLogger.log('ClientFormScreen: _submitForm iniciado. _isLoading: $_isLoading');
       setState(() { _isLoading = true; });
 
       final Map<String, dynamic> allData = {};
@@ -130,13 +138,17 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       if (_fechaAsignacion != null) allData['fechaAsignacion'] = _fechaAsignacion!.toUtc().toIso8601String();
 
       _customControllers.forEach((key, controller) {
-        allData[key] = controller.text.trim();
+        allData[key] = (controller as TextEditingController).text.trim(); // Asegurar el casteo
       });
+
+      AppLogger.log('ClientFormScreen: Datos a enviar: $allData');
 
       bool success;
       if (widget.clientId == null) {
+        AppLogger.log('ClientFormScreen: Llamando addClient...');
         success = await ref.read(clientNotifierProvider.notifier).addClient(allData);
       } else {
+        AppLogger.log('ClientFormScreen: Llamando updateClient para ID: ${widget.clientId!}');
         success = await ref.read(clientNotifierProvider.notifier).updateClient(widget.clientId!, allData);
       }
 
@@ -147,7 +159,26 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
           msg: success ? 'Cambios guardados correctamente' : (errorMessage ?? 'Error desconocido'),
           backgroundColor: success ? Colors.green : Colors.red
         );
-        if (success) context.pop();
+        AppLogger.log('ClientFormScreen: Operación de guardado completada. Success: $success');
+
+        if (success) {
+          // --- INICIO DE LA CORRECCIÓN ---
+          // Al usar context.pop(), la pantalla anterior se revela.
+          // Como ClientListScreen tiene un fetchClients() en su initState (addPostFrameCallback),
+          // se refrescará automáticamente.
+          AppLogger.log('ClientFormScreen: Realizando pop de la pantalla actual.');
+          context.pop(); 
+          // Si estábamos editando un cliente existente (ClientDetailScreen estaba debajo de ClientFormScreen),
+          // necesitamos hacer pop de la pantalla de detalle también para volver a ClientListScreen.
+          // Esto asegura que la pila sea: Home -> ClientList
+          if (widget.clientId != null) { 
+            AppLogger.log('ClientFormScreen: Cliente editado, realizando pop adicional de ClientDetailScreen.');
+            context.pop(); 
+          }
+          // --- FIN DE LA CORRECCIÓN ---
+        } else {
+          AppLogger.error('ClientFormScreen: Fallo al guardar. Mensaje: $errorMessage');
+        }
       }
     }
   }
@@ -155,13 +186,19 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   @override
   void dispose() {
     _standardControllers.forEach((_, controller) => controller.dispose());
-    _customControllers.forEach((_, controller) => controller.dispose());
+    _customControllers.forEach((key, controller) {
+      if (controller is TextEditingController) {
+        controller.dispose();
+      }
+    });
+    AppLogger.log('ClientFormScreen: dispose llamado.');
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final customFieldsState = ref.watch(customFieldNotifierProvider);
+    AppLogger.log('ClientFormScreen: build llamado. _isLoading: $_isLoading');
 
     return Scaffold(
       appBar: AppBar(
@@ -208,7 +245,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                   const SizedBox(height: 8),
                   ...customFieldsState.fields.map((fieldDef) {
                     return _buildTextField(
-                      _customControllers[fieldDef.key]!,
+                      _customControllers[fieldDef.key]! as TextEditingController, // Asegurar el casteo
                       fieldDef.name,
                     );
                   }),

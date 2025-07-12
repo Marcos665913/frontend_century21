@@ -1,8 +1,8 @@
+// C:\projectsFlutter\flutter_crm_app\lib\features\reminders\presentation\screens\reminder_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_crm_app/core/common_widgets/error_display_widget.dart';
 import 'package:flutter_crm_app/core/common_widgets/loading_indicator.dart';
-// import 'package:flutter_crm_app/features/reminders/data/models/reminder_model.dart'; // <-- LÍNEA ELIMINADA
 import 'package:flutter_crm_app/features/reminders/presentation/providers/reminder_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -21,6 +21,10 @@ class _ReminderListScreenState extends ConsumerState<ReminderListScreen> {
   void initState() {
     super.initState();
     _searchController.addListener(() => setState(() {}));
+    // Refrescar al entrar a la pantalla
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(reminderNotifierProvider.notifier).getReminders();
+    });
   }
 
   @override

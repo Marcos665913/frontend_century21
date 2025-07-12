@@ -1,6 +1,7 @@
+// C:\projectsFlutter\flutter_crm_app\lib\features\reminders\presentation\providers\reminder_provider.dart
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_crm_app/core/network/dio_client.dart';
+import 'package:flutter_crm_app/core/network/dio_client.dart'; // Importar AppLogger
 import 'package:flutter_crm_app/features/reminders/data/data_sources/reminder_remote_data_source.dart';
 import 'package:flutter_crm_app/features/reminders/data/models/reminder_model.dart';
 import 'package:flutter_crm_app/features/reminders/data/repositories/reminder_repository_impl.dart';
@@ -69,19 +70,23 @@ class ReminderNotifier extends StateNotifier<ReminderState> {
   }
 
   Future<bool> scheduleReminder(Map<String, dynamic> data) async {
+    // Nuevos Logs en scheduleReminder
+    AppLogger.log('ReminderNotifier: scheduleReminder iniciado. Estado actual: ${state.status}');
     state = state.copyWith(status: ReminderStatus.submitting);
     final result = await _repository.scheduleReminder(data);
     return result.fold(
       (failure) {
+        AppLogger.error('ReminderNotifier: Fallo al programar recordatorio. Error: ${failure.message}');
         state = state.copyWith(status: ReminderStatus.error, errorMessage: failure.message);
         return false;
       },
       (newReminder) {
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Se añade el nuevo recordatorio a la lista existente y se reordena
-        final updatedList = [...state.reminders, newReminder]..sort((a, b) => a.fecha.compareTo(b.fecha));
+        final updatedList = List<ReminderModel>.from(state.reminders)
+          ..add(newReminder);
+        updatedList.sort((a, b) => a.fecha.compareTo(b.fecha));
+        
         state = state.copyWith(status: ReminderStatus.loaded, reminders: updatedList);
-        // --- FIN DE LA CORRECCIÓN ---
+        AppLogger.log('ReminderNotifier: Recordatorio programado y lista actualizada. ID: ${newReminder.id}');
         return true;
       },
     );

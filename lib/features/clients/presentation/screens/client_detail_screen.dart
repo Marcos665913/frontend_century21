@@ -1,3 +1,4 @@
+// lib/features/clients/presentation/screens/client_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_crm_app/core/common_widgets/error_display_widget.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_crm_app/features/custom_fields/presentation/providers/cu
 import 'package:go_router/go_router.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_crm_app/core/network/dio_client.dart'; // Importar AppLogger
 
 class ClientDetailScreen extends ConsumerWidget {
   final String clientId;
@@ -35,7 +37,10 @@ class ClientDetailScreen extends ConsumerWidget {
                 final success = await ref.read(clientNotifierProvider.notifier).deleteClient(clientId);
                 if (success) {
                   Fluttertoast.showToast(msg: 'Cliente eliminado correctamente');
-                  if (context.mounted) context.pop();
+                  if (context.mounted) {
+                    AppLogger.log('ClientDetailScreen: Cliente eliminado, realizando pop.');
+                    context.pop(); // Pop de ClientDetailScreen para volver a ClientListScreen
+                  }
                 } else {
                    Fluttertoast.showToast(
                     msg: ref.read(clientNotifierProvider).errorMessage ?? 'Error al eliminar',
@@ -58,8 +63,10 @@ class ClientDetailScreen extends ConsumerWidget {
     ClientModel? client;
     try {
       client = clientState.clients.firstWhere((c) => c.id == clientId);
+      AppLogger.log('ClientDetailScreen: Cliente cargado para detalle: ${client.nombre}');
     } catch (e) {
       client = null;
+      AppLogger.error('ClientDetailScreen: Error al encontrar cliente en estado: $e');
     }
 
     if (client == null) {
@@ -81,6 +88,7 @@ class ClientDetailScreen extends ConsumerWidget {
     else if (currentUser?.userRoleEnum == UserRole.normal && client.createdBy?.id == currentUser?.id) {
        canEditClient = true;
     }
+    AppLogger.log('ClientDetailScreen: build llamado. Cliente: ${client.nombre}, canEdit: $canEditClient');
 
     return Scaffold(
       appBar: AppBar(
@@ -90,7 +98,10 @@ class ClientDetailScreen extends ConsumerWidget {
           if (canEditClient)
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () => context.go('/clients/$clientId/edit'),
+              onPressed: () {
+                AppLogger.log('ClientDetailScreen: Edit tap. Navegando a /clients/$clientId/edit (push).');
+                context.push('/clients/$clientId/edit'); // <-- CAMBIO CLAVE: Usar push
+              },
             ),
           RoleSpecificWidget(
             allowedRoles: const [UserRole.master],
@@ -112,8 +123,11 @@ class ClientDetailScreen extends ConsumerWidget {
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.add_alert),
                 label: const Text('Programar Recordatorio'),
-                onPressed: () => context.go('/reminders/new?clientId=$clientId'),
-                 style: ElevatedButton.styleFrom(
+                onPressed: () {
+                  AppLogger.log('ClientDetailScreen: Programar Recordatorio tap. Navegando a /reminders/new (push).');
+                  context.push('/reminders/new?clientId=$clientId'); // <-- CAMBIO CLAVE: Usar push
+                },
+                style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   foregroundColor: Colors.black,
                 ),
@@ -126,11 +140,9 @@ class ClientDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildDetailCard(BuildContext context, ClientModel client) {
-    // --- INICIO DE LA CORRECCIÓN ---
     // Se definen los formateadores aquí para que tengan el alcance correcto.
     final currencyFormat = NumberFormat.simpleCurrency(locale: 'es_MX');
     final dateTimeFormat = DateFormat.yMMMMd('es_ES').add_jm();
-    // --- FIN DE LA CORRECCIÓN ---
     
     return Card(
       elevation: 4,

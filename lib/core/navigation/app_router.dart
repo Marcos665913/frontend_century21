@@ -15,6 +15,7 @@ import 'package:flutter_crm_app/features/users_management/presentation/screens/u
 import 'package:flutter_crm_app/features/custom_fields/presentation/screens/manage_custom_fields_screen.dart';
 import 'package:flutter_crm_app/features/reminders/presentation/screens/reminder_list_screen.dart';
 import 'package:flutter_crm_app/features/reminders/presentation/screens/schedule_reminder_screen.dart';
+import 'package:flutter_crm_app/core/network/dio_client.dart'; // Para AppLogger
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -39,16 +40,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/',
         builder: (context, state) => const HomeScreen(),
         routes: [
+          // --- INICIO DE LA CORRECCIÓN: Rutas de Clientes ---
+          // Usaremos rutas con nombres para una navegación más clara y controlada
           GoRoute(
             path: 'clients',
+            name: 'clientsList', // Nombre de la ruta para la lista de clientes
             builder: (context, state) => const ClientListScreen(),
             routes: [
               GoRoute(
                 path: 'new',
+                name: 'newClient', // Nombre de la ruta para nuevo cliente
                 builder: (context, state) => const ClientFormScreen(),
               ),
               GoRoute(
                 path: ':clientId',
+                name: 'clientDetail', // Nombre de la ruta para detalle de cliente
                 builder: (context, state) {
                   final clientId = state.pathParameters['clientId']!;
                   return ClientDetailScreen(clientId: clientId);
@@ -56,6 +62,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'edit',
+                    name: 'editClient', // Nombre de la ruta para editar cliente
                     builder: (context, state) {
                       final clientId = state.pathParameters['clientId']!;
                       return ClientFormScreen(clientId: clientId);
@@ -65,6 +72,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ]
           ),
+          // --- FIN DE LA CORRECCIÓN: Rutas de Clientes ---
+
           GoRoute(
             path: 'users',
             builder: (context, state) => const UserListScreen(),
@@ -96,11 +105,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final bool loggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/register';
 
       if (!loggedIn && !loggingIn) {
+        AppLogger.log('GoRouter Redirect: No logueado, redirigiendo a /login');
         return '/login';
       }
       if (loggedIn && loggingIn) {
+        AppLogger.log('GoRouter Redirect: Logueado, redirigiendo a /');
         return '/';
       }
+      AppLogger.log('GoRouter Redirect: No se necesita redirección.');
       return null;
     },
   );

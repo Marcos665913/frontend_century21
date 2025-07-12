@@ -1,3 +1,4 @@
+// lib/features/clients/presentation/providers/client_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_crm_app/core/network/dio_client.dart'; // Asegúrate de que AppLogger esté accesible
 import 'package:flutter_crm_app/features/clients/data/data_sources/client_remote_data_source.dart';
@@ -86,7 +87,9 @@ class ClientNotifier extends StateNotifier<ClientState> {
           updatedList[index] = updatedClient;
           state = state.copyWith(status: ClientStatus.loaded, clients: updatedList);
         } else {
-          fetchClients();
+          // Si el cliente no se encuentra en la lista actual (ej. lista vacía al inicio),
+          // forzamos un fetch completo para asegurar que el nuevo cliente aparezca.
+          fetchClients(); 
         }
         return true;
       },
@@ -114,9 +117,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
       final response = await _dio.get('/clients/export-url'); 
       final String downloadUrl = response.data['downloadUrl']; 
 
-      // --- Log Existente, ahora usando AppLogger ---
       AppLogger.log('CLIENT PROVIDER: URL de descarga recibida del backend: $downloadUrl');
-      // -------------------------------------------
 
       if (!await canLaunchUrl(Uri.parse(downloadUrl))) {
         return 'No se pudo abrir el enlace de descarga. Asegúrate de que la URL es válida.';
@@ -124,7 +125,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
       await launchUrl(Uri.parse(downloadUrl), mode: LaunchMode.externalApplication);
       return null;
     } catch (e) {
-      AppLogger.error('CLIENT PROVIDER: Error en exportClientsToExcel: $e'); // Usando AppLogger
+      AppLogger.error('CLIENT PROVIDER: Error en exportClientsToExcel: $e'); 
       return 'Ocurrió un error al intentar exportar el archivo.';
     }
   }

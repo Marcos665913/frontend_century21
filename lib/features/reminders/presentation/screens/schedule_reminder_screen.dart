@@ -1,3 +1,4 @@
+// C:\projectsFlutter\flutter_crm_app\lib\features\reminders\presentation\screens\schedule_reminder_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_crm_app/features/clients/presentation/providers/client_provider.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_crm_app/features/reminders/presentation/providers/remind
 import 'package:go_router/go_router.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_crm_app/core/network/dio_client.dart'; // Importar AppLogger
 
 class ScheduleReminderScreen extends ConsumerStatefulWidget {
   final String? clientId;
@@ -62,16 +64,17 @@ class _ScheduleReminderScreenState extends ConsumerState<ScheduleReminderScreen>
 
       setState(() { _isLoading = true; });
 
-      // --- INICIO DE LA CORRECCIÓN DE ZONA HORARIA ---
-      // Convertimos la fecha local a UTC ANTES de enviarla como texto
       final utcDate = _selectedDate!.toUtc();
-      // --- FIN DE LA CORRECCIÓN ---
 
       final data = {
         'mensaje': _messageController.text.trim(),
         'fecha': utcDate.toIso8601String(), // Enviamos la fecha en formato UTC
         if (_selectedClientId != null) 'cliente': _selectedClientId,
       };
+
+      // Nuevos Logs en _submitForm
+      AppLogger.log('ScheduleReminderScreen: _submitForm iniciado.');
+      AppLogger.log('ScheduleReminderScreen: Datos a enviar: $data');
 
       final success = await ref.read(reminderNotifierProvider.notifier).scheduleReminder(data);
 
@@ -82,7 +85,12 @@ class _ScheduleReminderScreenState extends ConsumerState<ScheduleReminderScreen>
           msg: success ? 'Recordatorio guardado' : (errorMessage ?? 'Error'),
           backgroundColor: success ? Colors.green : Colors.red
         );
-        if (success) context.pop();
+        if (success) {
+          AppLogger.log('ScheduleReminderScreen: Recordatorio guardado exitosamente. Navegando hacia atrás.');
+          context.pop(); 
+        } else {
+          AppLogger.error('ScheduleReminderScreen: Fallo al guardar recordatorio. Error: $errorMessage');
+        }
       }
     }
   }
@@ -119,7 +127,6 @@ class _ScheduleReminderScreenState extends ConsumerState<ScheduleReminderScreen>
               leading: const Icon(Icons.calendar_today),
               title: Text(_selectedDate == null
                   ? 'Seleccionar fecha y hora*'
-                  // Mostramos la fecha en formato local
                   : DateFormat.yMMMMd('es_ES').add_jm().format(_selectedDate!)),
               trailing: const Icon(Icons.edit),
               onTap: _pickDateTime,
@@ -128,10 +135,10 @@ class _ScheduleReminderScreenState extends ConsumerState<ScheduleReminderScreen>
             _isLoading
               ? const Center(child: CircularProgressIndicator())
               : ElevatedButton(
-                onPressed: _submitForm,
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                child: const Text('GUARDAR RECORDATORIO'),
-              )
+                  onPressed: _submitForm,
+                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                  child: const Text('GUARDAR RECORDATORIO'),
+                )
           ],
         ),
       ),
