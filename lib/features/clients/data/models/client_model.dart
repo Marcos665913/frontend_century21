@@ -1,3 +1,4 @@
+// C:\projectsFlutter\flutter_crm_app\lib\features\clients\data\models\client_model.dart
 import 'package:equatable/equatable.dart';
 import 'package:flutter_crm_app/core/constants/enums.dart';
 import 'package:flutter_crm_app/features/auth/data/models/user_model.dart';
@@ -28,6 +29,10 @@ class ClientModel extends Equatable {
   String get correo => fields['correo']?.toString() ?? '';
   
   AsuntoInmobiliario? get asunto => enumFromString(AsuntoInmobiliario.values, fields['asunto']?.toString());
+  // --- INICIO DE NUEVOS GETTERS ---
+  String get idOperacion => fields['idOperacion']?.toString() ?? ''; // Nuevo getter para "ID"
+  String get idsRelacionados => fields['idsRelacionados']?.toString() ?? ''; // Nuevo getter para "ID Relacionados"
+  // --- FIN DE NUEVOS GETTERS ---
   TipoInmueble? get tipoInmueble => enumFromString(TipoInmueble.values, fields['tipoInmueble']?.toString());
   OrigenCliente? get origen => enumFromString(OrigenCliente.values, fields['origen']?.toString());
   EstatusCliente? get estatus => enumFromString(EstatusCliente.values, fields['estatus']?.toString());

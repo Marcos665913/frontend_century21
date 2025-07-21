@@ -36,13 +36,24 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeControllers();
+    // --- INICIO DE LA CORRECCIÓN ---
+    // Añadir los nuevos campos a la inicialización de controladores estándar
+    _initializeControllers(); 
+    // --- FIN DE LA CORRECCIÓN ---
     Future.microtask(() => _loadInitialData());
     AppLogger.log('ClientFormScreen: initState - ${widget.clientId == null ? "Creando" : "Editando"} cliente.');
   }
 
   void _initializeControllers() {
-    final keys = ['nombre', 'telefono', 'correo', 'presupuesto', 'zona', 'seguimiento', 'especificaciones', 'observaciones'];
+    // --- INICIO DE LA CORRECCIÓN ---
+    // Incluir 'idOperacion' y 'idsRelacionados' en la lista de claves estándar
+    final keys = [
+      'nombre', 'telefono', 'correo', 'presupuesto', 'zona', 
+      'seguimiento', 'especificaciones', 'observaciones',
+      'idOperacion', // Nuevo campo
+      'idsRelacionados', // Nuevo campo
+    ];
+    // --- FIN DE LA CORRECCIÓN ---
     for (var key in keys) {
       _standardControllers[key] = TextEditingController();
     }
@@ -66,7 +77,10 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         _fechaAsignacion = _editingClient!.fechaAsignacion;
 
         _standardControllers.forEach((key, controller) {
+          // --- INICIO DE LA CORRECCIÓN ---
+          // Cargar los valores existentes para los nuevos campos
           controller.text = _editingClient!.fields[key]?.toString() ?? '';
+          // --- FIN DE LA CORRECCIÓN ---
         });
 
         _editingClient!.customFieldsData.forEach((key, value) {
@@ -162,20 +176,12 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         AppLogger.log('ClientFormScreen: Operación de guardado completada. Success: $success');
 
         if (success) {
-          // --- INICIO DE LA CORRECCIÓN ---
-          // Al usar context.pop(), la pantalla anterior se revela.
-          // Como ClientListScreen tiene un fetchClients() en su initState (addPostFrameCallback),
-          // se refrescará automáticamente.
           AppLogger.log('ClientFormScreen: Realizando pop de la pantalla actual.');
           context.pop(); 
-          // Si estábamos editando un cliente existente (ClientDetailScreen estaba debajo de ClientFormScreen),
-          // necesitamos hacer pop de la pantalla de detalle también para volver a ClientListScreen.
-          // Esto asegura que la pila sea: Home -> ClientList
           if (widget.clientId != null) { 
             AppLogger.log('ClientFormScreen: Cliente editado, realizando pop adicional de ClientDetailScreen.');
             context.pop(); 
           }
-          // --- FIN DE LA CORRECCIÓN ---
         } else {
           AppLogger.error('ClientFormScreen: Fallo al guardar. Mensaje: $errorMessage');
         }
@@ -224,6 +230,10 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
 
                 _buildSectionTitle('Detalles de la Operación'),
                 _buildDropdown<AsuntoInmobiliario>(AsuntoInmobiliario.values, 'asunto', 'Asunto*'),
+                // --- INICIO DE NUEVOS CAMPOS EN EL FORMULARIO ---
+                _buildTextField(_standardControllers['idOperacion']!, 'ID Operación'), // Nuevo campo "ID"
+                _buildTextField(_standardControllers['idsRelacionados']!, 'IDs Relacionados'), // Nuevo campo "ID Relacionados"
+                // --- FIN DE NUEVOS CAMPOS ---
                 _buildDropdown<TipoInmueble>(TipoInmueble.values, 'tipoInmueble', 'Tipo de Inmueble'),
                 _buildTextField(_standardControllers['presupuesto']!, 'Presupuesto*'),
                 _buildDropdown<TipoPago>(TipoPago.values, 'tipoPago', 'Tipo de Pago*'),
