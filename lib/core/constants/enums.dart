@@ -95,7 +95,9 @@ enum TipoPago {
   efectivo('EFECTIVO', 'Efectivo'),
   bancario('BANCARIO', 'Bancario'),
   infonavit('INFONAVIT', 'Infonavit'),
-  fovissste('FOVISSTE', 'Fovissste');
+  fovissste('FOVISSTE', 'Fovissste'),
+  // MODIFICACIÓN: Añadir 'PRECIO TENTATIVO'
+  precioTentativo('PRECIO TENTATIVO', 'Precio Tentativo');
 
   const TipoPago(this.backendValue, this.displayValue);
   final String backendValue;

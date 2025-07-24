@@ -20,7 +20,7 @@ class ClientModel extends Equatable {
     this.updatedAt,
   });
 
-  // --- GETTERS ACTUALIZADOS Y NUEVOS ---
+  // GETTERS ACTUALIZADOS Y NUEVOS
   DateTime? get fechaContacto => fields['fechaContacto'] != null ? DateTime.tryParse(fields['fechaContacto']) : null;
   DateTime? get fechaAsignacion => fields['fechaAsignacion'] != null ? DateTime.tryParse(fields['fechaAsignacion']) : null;
   
@@ -29,10 +29,8 @@ class ClientModel extends Equatable {
   String get correo => fields['correo']?.toString() ?? '';
   
   AsuntoInmobiliario? get asunto => enumFromString(AsuntoInmobiliario.values, fields['asunto']?.toString());
-  // --- INICIO DE NUEVOS GETTERS ---
-  String get idOperacion => fields['idOperacion']?.toString() ?? ''; // Nuevo getter para "ID"
-  String get idsRelacionados => fields['idsRelacionados']?.toString() ?? ''; // Nuevo getter para "ID Relacionados"
-  // --- FIN DE NUEVOS GETTERS ---
+  String get idOperacion => fields['idOperacion']?.toString() ?? ''; 
+  String get idsRelacionados => fields['idsRelacionados']?.toString() ?? ''; 
   TipoInmueble? get tipoInmueble => enumFromString(TipoInmueble.values, fields['tipoInmueble']?.toString());
   OrigenCliente? get origen => enumFromString(OrigenCliente.values, fields['origen']?.toString());
   EstatusCliente? get estatus => enumFromString(EstatusCliente.values, fields['estatus']?.toString());
@@ -40,7 +38,7 @@ class ClientModel extends Equatable {
   String get seguimiento => fields['seguimiento']?.toString() ?? '';
   
   double get presupuesto => (fields['presupuesto'] as num?)?.toDouble() ?? 0.0;
-  TipoPago? get tipoPago => enumFromString(TipoPago.values, fields['tipoPago']?.toString());
+  TipoPago? get tipoPago => enumFromString(TipoPago.values, fields['tipoPago']?.toString()); // Este getter ya maneja la nueva opción
   String get zona => fields['zona']?.toString() ?? '';
   
   String get especificaciones => fields['especificaciones']?.toString() ?? '';

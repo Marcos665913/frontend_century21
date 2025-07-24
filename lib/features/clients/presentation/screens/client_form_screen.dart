@@ -23,7 +23,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final Map<String, TextEditingController> _standardControllers = {};
-  final Map<String, dynamic> _customControllers = {}; // Usar Map<String, dynamic> para consistencia
+  final Map<String, dynamic> _customControllers = {}; 
   
   final Map<String, dynamic> _dropdownValues = {};
 
@@ -36,24 +36,18 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   @override
   void initState() {
     super.initState();
-    // --- INICIO DE LA CORRECCIÓN ---
-    // Añadir los nuevos campos a la inicialización de controladores estándar
     _initializeControllers(); 
-    // --- FIN DE LA CORRECCIÓN ---
     Future.microtask(() => _loadInitialData());
     AppLogger.log('ClientFormScreen: initState - ${widget.clientId == null ? "Creando" : "Editando"} cliente.');
   }
 
   void _initializeControllers() {
-    // --- INICIO DE LA CORRECCIÓN ---
-    // Incluir 'idOperacion' y 'idsRelacionados' en la lista de claves estándar
     final keys = [
       'nombre', 'telefono', 'correo', 'presupuesto', 'zona', 
       'seguimiento', 'especificaciones', 'observaciones',
-      'idOperacion', // Nuevo campo
-      'idsRelacionados', // Nuevo campo
+      'idOperacion', 
+      'idsRelacionados', 
     ];
-    // --- FIN DE LA CORRECCIÓN ---
     for (var key in keys) {
       _standardControllers[key] = TextEditingController();
     }
@@ -70,17 +64,14 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         _dropdownValues['asunto'] = _editingClient!.asunto;
         _dropdownValues['tipoInmueble'] = _editingClient!.tipoInmueble;
         _dropdownValues['origen'] = _editingClient!.origen;
-        _dropdownValues['estatus'] = _editingClient!.estatus; // Carga el estatus existente del cliente a editar
-        _dropdownValues['tipoPago'] = _editingClient!.tipoPago;
+        _dropdownValues['estatus'] = _editingClient!.estatus; 
+        _dropdownValues['tipoPago'] = _editingClient!.tipoPago; // Este valor se cargará correctamente
 
         _fechaContacto = _editingClient!.fechaContacto;
         _fechaAsignacion = _editingClient!.fechaAsignacion;
 
         _standardControllers.forEach((key, controller) {
-          // --- INICIO DE LA CORRECCIÓN ---
-          // Cargar los valores existentes para los nuevos campos
           controller.text = _editingClient!.fields[key]?.toString() ?? '';
-          // --- FIN DE LA CORRECCIÓN ---
         });
 
         _editingClient!.customFieldsData.forEach((key, value) {
@@ -94,7 +85,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     } else {
       _fechaContacto = DateTime.now();
       _fechaAsignacion = DateTime.now();
-      _dropdownValues['estatus'] = EstatusCliente.sinComenzar; // Establece un valor por defecto al crear
+      _dropdownValues['estatus'] = EstatusCliente.sinComenzar; 
       AppLogger.log('ClientFormScreen: Inicializando formulario para nuevo cliente.');
     }
 
@@ -152,7 +143,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       if (_fechaAsignacion != null) allData['fechaAsignacion'] = _fechaAsignacion!.toUtc().toIso8601String();
 
       _customControllers.forEach((key, controller) {
-        allData[key] = (controller as TextEditingController).text.trim(); // Asegurar el casteo
+        allData[key] = (controller as TextEditingController).text.trim(); 
       });
 
       AppLogger.log('ClientFormScreen: Datos a enviar: $allData');
@@ -230,19 +221,15 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
 
                 _buildSectionTitle('Detalles de la Operación'),
                 _buildDropdown<AsuntoInmobiliario>(AsuntoInmobiliario.values, 'asunto', 'Asunto*'),
-                // --- INICIO DE NUEVOS CAMPOS EN EL FORMULARIO ---
                 _buildTextField(_standardControllers['idOperacion']!, 'ID Operación'), // Nuevo campo "ID"
                 _buildTextField(_standardControllers['idsRelacionados']!, 'IDs Relacionados'), // Nuevo campo "ID Relacionados"
-                // --- FIN DE NUEVOS CAMPOS ---
                 _buildDropdown<TipoInmueble>(TipoInmueble.values, 'tipoInmueble', 'Tipo de Inmueble'),
                 _buildTextField(_standardControllers['presupuesto']!, 'Presupuesto*'),
-                _buildDropdown<TipoPago>(TipoPago.values, 'tipoPago', 'Tipo de Pago*'),
+                _buildDropdown<TipoPago>(TipoPago.values, 'tipoPago', 'Tipo de Pago*'), // Este ya usa el enum modificado
                 _buildTextField(_standardControllers['zona']!, 'Zona de Interés'),
 
-                // --- ESTE ES EL CAMPO PARA EL ESTATUS DEL CLIENTE ---
                 _buildSectionTitle('Estatus del Cliente'),
                 _buildDropdown<EstatusCliente>(EstatusCliente.values, 'estatus', 'Estatus*'),
-                // ----------------------------------------------------
 
                 _buildSectionTitle('Seguimiento'),
                 _buildTextField(_standardControllers['seguimiento']!, 'Seguimiento', maxLines: 4),
@@ -255,7 +242,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                   const SizedBox(height: 8),
                   ...customFieldsState.fields.map((fieldDef) {
                     return _buildTextField(
-                      _customControllers[fieldDef.key]! as TextEditingController, // Asegurar el casteo
+                      _customControllers[fieldDef.key]! as TextEditingController, 
                       fieldDef.name,
                     );
                   }),
