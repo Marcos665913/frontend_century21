@@ -2,7 +2,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_crm_app/core/constants/enums.dart';
 import 'package:flutter_crm_app/features/auth/data/models/user_model.dart';
-
 class ClientModel extends Equatable {
   final String id;
   final Map<String, dynamic> fields;
@@ -10,7 +9,6 @@ class ClientModel extends Equatable {
   final UserModel? createdBy;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-
   const ClientModel({
     required this.id,
     required this.fields,
@@ -19,8 +17,6 @@ class ClientModel extends Equatable {
     this.createdAt,
     this.updatedAt,
   });
-
-  // GETTERS ACTUALIZADOS Y NUEVOS
   DateTime? get fechaContacto => fields['fechaContacto'] != null ? DateTime.tryParse(fields['fechaContacto']) : null;
   DateTime? get fechaAsignacion => fields['fechaAsignacion'] != null ? DateTime.tryParse(fields['fechaAsignacion']) : null;
   
@@ -29,8 +25,8 @@ class ClientModel extends Equatable {
   String get correo => fields['correo']?.toString() ?? '';
   
   AsuntoInmobiliario? get asunto => enumFromString(AsuntoInmobiliario.values, fields['asunto']?.toString());
-  String get idOperacion => fields['idOperacion']?.toString() ?? ''; 
-  String get idsRelacionados => fields['idsRelacionados']?.toString() ?? ''; 
+  String get idOperacion => fields['idOperacion']?.toString() ?? '';
+  String get idsRelacionados => fields['idsRelacionados']?.toString() ?? '';
   TipoInmueble? get tipoInmueble => enumFromString(TipoInmueble.values, fields['tipoInmueble']?.toString());
   OrigenCliente? get origen => enumFromString(OrigenCliente.values, fields['origen']?.toString());
   EstatusCliente? get estatus => enumFromString(EstatusCliente.values, fields['estatus']?.toString());
@@ -38,12 +34,11 @@ class ClientModel extends Equatable {
   String get seguimiento => fields['seguimiento']?.toString() ?? '';
   
   double get presupuesto => (fields['presupuesto'] as num?)?.toDouble() ?? 0.0;
-  TipoPago? get tipoPago => enumFromString(TipoPago.values, fields['tipoPago']?.toString()); // Este getter ya maneja la nueva opción
+  TipoPago? get tipoPago => enumFromString(TipoPago.values, fields['tipoPago']?.toString());
   String get zona => fields['zona']?.toString() ?? '';
   
   String get especificaciones => fields['especificaciones']?.toString() ?? '';
   String get observaciones => fields['observaciones']?.toString() ?? '';
-
   factory ClientModel.fromJson(Map<String, dynamic> json) {
     return ClientModel(
       id: json['_id'] as String,
@@ -54,7 +49,6 @@ class ClientModel extends Equatable {
       updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
     );
   }
-
   @override
   List<Object?> get props => [id, fields, customFieldsData, createdBy, createdAt, updatedAt];
 }

@@ -1,5 +1,4 @@
 // lib/core/constants/enums.dart
-
 // Roles de Usuario
 enum UserRole {
   normal,
@@ -7,7 +6,6 @@ enum UserRole {
   master,
   unknown
 }
-
 UserRole userRoleFromString(String? roleString) {
   switch (roleString?.toLowerCase()) {
     case 'normal':
@@ -20,11 +18,9 @@ UserRole userRoleFromString(String? roleString) {
       return UserRole.unknown;
   }
 }
-
 String userRoleToString(UserRole role) {
   return role.name;
 }
-
 // ENUMS PARA CLIENTE
 enum AsuntoInmobiliario {
   compra('COMPRA', 'Compra'),
@@ -33,12 +29,10 @@ enum AsuntoInmobiliario {
   darEnRenta('DAR A RENTA', 'Dar en Renta'),
   asesorExterno('ASESOR EXTERNO', 'Asesor Externo'),
   asesoria('ASESORIA', 'Asesoría');
-
   const AsuntoInmobiliario(this.backendValue, this.displayValue);
   final String backendValue;
   final String displayValue;
 }
-
 enum TipoInmueble {
   casa('CASA', 'Casa'),
   departamento('DEPARTAMENTO', 'Departamento'),
@@ -46,12 +40,10 @@ enum TipoInmueble {
   terreno('TERRENO', 'Terreno'),
   local('LOCAL', 'Local'),
   naveIndustrial('NAVE INDUSTRIAL', 'Nave Industrial');
-
   const TipoInmueble(this.backendValue, this.displayValue);
   final String backendValue;
   final String displayValue;
 }
-
 enum OrigenCliente {
   amigoConocido('AMIGO/CONOCIDO', 'Amigo/Conocido'),
   esferaInfluencia('ESFERA DE INFLUENCIA', 'Esfera de Influencia'),
@@ -71,12 +63,10 @@ enum OrigenCliente {
   facebookPersonal('FACEBOOK PERSONAL', 'Facebook Personal'),
   marketPlace('MARKET PLACE', 'Market Place'),
   guardia('GUARDIA', 'Guardia');
-
   const OrigenCliente(this.backendValue, this.displayValue);
   final String backendValue;
   final String displayValue;
 }
-
 enum EstatusCliente {
   sinComenzar('SIN COMENZAR', 'Sin Comenzar'),
   iniciado('INICIADO', 'Iniciado'),
@@ -87,32 +77,25 @@ enum EstatusCliente {
   rechazado('RECHAZADO', 'Rechazado'),
   citado('CITADO', 'Citado'),
   sinRespuesta('SIN RESPUESTA', 'Sin Respuesta');
-
   const EstatusCliente(this.backendValue, this.displayValue);
   final String backendValue;
   final String displayValue;
 }
-
 enum TipoPago {
   efectivo('EFECTIVO', 'Efectivo'),
   bancario('BANCARIO', 'Bancario'),
   infonavit('INFONAVIT', 'Infonavit'),
   fovissste('FOVISSTE', 'Fovissste'),
-  precioTentativo('PRECIO TENTATIVO', 'Precio Tentativo');
-
+  na('N/A', 'N/A');
   const TipoPago(this.backendValue, this.displayValue);
   final String backendValue;
   final String displayValue;
 }
-
-/// Convierte un valor de texto del backend al Enum correspondiente.
 T? enumFromString<T>(List<T> values, String? value) {
   if (value == null) return null;
   try {
-    // Para enums con 'backendValue'
     return values.firstWhere((type) => (type as dynamic).backendValue == value);
   } catch (e) {
-    // Para enums simples como UserRole
     try {
       return values.firstWhere((type) => type.toString().split('.').last == value);
     } catch (e) {
@@ -120,15 +103,11 @@ T? enumFromString<T>(List<T> values, String? value) {
     }
   }
 }
-
-/// Convierte un objeto Enum a su valor de texto para el backend.
 String? enumToBackendValue(dynamic enumValue) {
   if (enumValue == null) return null;
   try {
-    // Intenta acceder a backendValue
     return (enumValue as dynamic).backendValue as String?;
   } catch (e) {
-    // Si falla, es un enum simple, usa su nombre
     return enumValue.name;
   }
 }
