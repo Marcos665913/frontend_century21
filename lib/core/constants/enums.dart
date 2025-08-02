@@ -22,11 +22,10 @@ UserRole userRoleFromString(String? roleString) {
 }
 
 String userRoleToString(UserRole role) {
-  return role.name; // Usamos .name que es más seguro y moderno
+  return role.name;
 }
 
-// --- ENUMS PARA CLIENTE ACTUALIZADOS ---
-
+// ENUMS PARA CLIENTE
 enum AsuntoInmobiliario {
   compra('COMPRA', 'Compra'),
   venta('VENTA', 'Venta'),
@@ -68,7 +67,10 @@ enum OrigenCliente {
   googleAds('GOOGLE ADS', 'Google Ads'),
   tikTok('TIK TOK', 'TikTok'),
   youtube('YOUTUBE', 'YouTube'),
-  telefonoOficina('TELEFONO OFICINA', 'Teléfono Oficina');
+  telefonoOficina('TELEFONO OFICINA', 'Teléfono Oficina'),
+  facebookPersonal('FACEBOOK PERSONAL', 'Facebook Personal'),
+  marketPlace('MARKET PLACE', 'Market Place'),
+  guardia('GUARDIA', 'Guardia');
 
   const OrigenCliente(this.backendValue, this.displayValue);
   final String backendValue;
@@ -96,15 +98,12 @@ enum TipoPago {
   bancario('BANCARIO', 'Bancario'),
   infonavit('INFONAVIT', 'Infonavit'),
   fovissste('FOVISSTE', 'Fovissste'),
-  // MODIFICACIÓN: Añadir 'PRECIO TENTATIVO'
   precioTentativo('PRECIO TENTATIVO', 'Precio Tentativo');
 
   const TipoPago(this.backendValue, this.displayValue);
   final String backendValue;
   final String displayValue;
 }
-
-// --- FUNCIONES DE AYUDA ---
 
 /// Convierte un valor de texto del backend al Enum correspondiente.
 T? enumFromString<T>(List<T> values, String? value) {
