@@ -9,7 +9,7 @@ import 'package:flutter_crm_app/features/custom_fields/presentation/providers/cu
 import 'package:go_router/go_router.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_crm_app/core/network/dio_client.dart';
+import 'package:flutter_crm_app/core/network/dio_client.dart'; // Importar AppLogger
 
 class ClientFormScreen extends ConsumerStatefulWidget {
   final String? clientId;
@@ -23,7 +23,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final Map<String, TextEditingController> _standardControllers = {};
-  final Map<String, dynamic> _customControllers = {};
+  final Map<String, dynamic> _customControllers = {}; 
   
   final Map<String, dynamic> _dropdownValues = {};
 
@@ -38,14 +38,16 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     super.initState();
     _initializeControllers();
     Future.microtask(() => _loadInitialData());
+    AppLogger.log('ClientFormScreen: initState - ${widget.clientId == null ? "Creando" : "Editando"} cliente.');
   }
 
   void _initializeControllers() {
     final keys = [
-      'nombre', 'telefono', 'correo', 'presupuesto', 'zona',
+      'nombre', 'telefono', 'correo', 'presupuesto', 'zona', 
       'seguimiento', 'especificaciones', 'observaciones',
-      'idOperacion',
+      'idOperacion', 
       'idsRelacionados',
+      'precioSugerido', // NUEVO CAMPO AÑADIDO
     ];
     for (var key in keys) {
       _standardControllers[key] = TextEditingController();
@@ -58,12 +60,13 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     if (widget.clientId != null) {
       try {
         _editingClient = ref.read(clientNotifierProvider).clients.firstWhere((c) => c.id == widget.clientId);
+        AppLogger.log('ClientFormScreen: Cliente a editar cargado: ${_editingClient?.nombre}');
 
         _dropdownValues['asunto'] = _editingClient!.asunto;
         _dropdownValues['tipoInmueble'] = _editingClient!.tipoInmueble;
         _dropdownValues['origen'] = _editingClient!.origen;
-        _dropdownValues['estatus'] = _editingClient!.estatus;
-        _dropdownValues['tipoPago'] = _editingClient!.tipoPago;
+        _dropdownValues['estatus'] = _editingClient!.estatus; 
+        _dropdownValues['tipoPago'] = _editingClient!.tipoPago; 
 
         _fechaContacto = _editingClient!.fechaContacto;
         _fechaAsignacion = _editingClient!.fechaAsignacion;
@@ -77,12 +80,14 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         });
 
       } catch (e) {
+        AppLogger.error('ClientFormScreen: Error al cargar cliente para editar: $e');
         if(mounted) Fluttertoast.showToast(msg: "Error: No se encontró el cliente.", backgroundColor: Colors.red);
       }
     } else {
       _fechaContacto = DateTime.now();
       _fechaAsignacion = DateTime.now();
-      _dropdownValues['estatus'] = EstatusCliente.sinComenzar;
+      _dropdownValues['estatus'] = EstatusCliente.sinComenzar; 
+      AppLogger.log('ClientFormScreen: Inicializando formulario para nuevo cliente.');
     }
 
     final customFieldDefs = ref.read(customFieldNotifierProvider).fields;
@@ -93,6 +98,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     }
 
     if(mounted) setState(() { _isLoading = false; });
+    AppLogger.log('ClientFormScreen: Formulario cargado. _isLoading: $_isLoading');
   }
 
   Future<DateTime?> _pickDateTime(BuildContext context, DateTime? initialDate) async {
@@ -115,12 +121,13 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      AppLogger.log('ClientFormScreen: _submitForm iniciado. _isLoading: $_isLoading');
       setState(() { _isLoading = true; });
 
       final Map<String, dynamic> allData = {};
 
       _standardControllers.forEach((key, controller) {
-        if (key == 'presupuesto') {
+        if (key == 'presupuesto' || key == 'precioSugerido') { // MODIFICACIÓN: Presupuesto y Precio Sugerido como número
           allData[key] = num.tryParse(controller.text.replaceAll(',', '')) ?? 0;
         } else {
           allData[key] = controller.text.trim();
@@ -140,10 +147,14 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         allData[key] = (controller as TextEditingController).text.trim();
       });
 
+      AppLogger.log('ClientFormScreen: Datos a enviar: $allData');
+
       bool success;
       if (widget.clientId == null) {
+        AppLogger.log('ClientFormScreen: Llamando addClient...');
         success = await ref.read(clientNotifierProvider.notifier).addClient(allData);
       } else {
+        AppLogger.log('ClientFormScreen: Llamando updateClient para ID: ${widget.clientId!}');
         success = await ref.read(clientNotifierProvider.notifier).updateClient(widget.clientId!, allData);
       }
 
@@ -154,12 +165,15 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
           msg: success ? 'Cambios guardados correctamente' : (errorMessage ?? 'Error desconocido'),
           backgroundColor: success ? Colors.green : Colors.red
         );
+        AppLogger.log('ClientFormScreen: Operación de guardado completada. Success: $success');
 
         if (success) {
-          context.pop();
-          if (widget.clientId != null) {
-            context.pop();
+          context.pop(); 
+          if (widget.clientId != null) { 
+            context.pop(); 
           }
+        } else {
+          AppLogger.error('ClientFormScreen: Fallo al guardar. Mensaje: $errorMessage');
         }
       }
     }
@@ -173,12 +187,14 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         controller.dispose();
       }
     });
+    AppLogger.log('ClientFormScreen: dispose llamado.');
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final customFieldsState = ref.watch(customFieldNotifierProvider);
+    AppLogger.log('ClientFormScreen: build llamado. _isLoading: $_isLoading');
 
     return Scaffold(
       appBar: AppBar(
@@ -208,6 +224,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                 _buildTextField(_standardControllers['idsRelacionados']!, 'IDs Relacionados'),
                 _buildDropdown<TipoInmueble>(TipoInmueble.values, 'tipoInmueble', 'Tipo de Inmueble'),
                 _buildTextField(_standardControllers['presupuesto']!, 'Presupuesto*'),
+                _buildTextField(_standardControllers['precioSugerido']!, 'Precio Sugerido'), // NUEVO CAMPO AÑADIDO
                 _buildDropdown<TipoPago>(TipoPago.values, 'tipoPago', 'Tipo de Pago*'),
                 _buildTextField(_standardControllers['zona']!, 'Zona de Interés'),
 

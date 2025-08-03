@@ -34,6 +34,9 @@ class ClientModel extends Equatable {
   String get seguimiento => fields['seguimiento']?.toString() ?? '';
   
   double get presupuesto => (fields['presupuesto'] as num?)?.toDouble() ?? 0.0;
+  // NUEVO GETTER AÑADIDO
+  double get precioSugerido => (fields['precioSugerido'] as num?)?.toDouble() ?? 0.0;
+  // FIN NUEVO GETTER
   TipoPago? get tipoPago => enumFromString(TipoPago.values, fields['tipoPago']?.toString());
   String get zona => fields['zona']?.toString() ?? '';
   
